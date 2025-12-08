@@ -1,5 +1,9 @@
 import type { Audio } from "../device/Audio";
 import { ChipData } from "./ChipData";
+import { getLogger } from "loglevel";
+
+const logger = getLogger("Chip");
+logger.setLevel("warn");
 
 export class Chip {
 	// 内存 4 KB 4096 2 的 12 次方
@@ -60,7 +64,7 @@ export class Chip {
 		}
 		const opcode = (high << 8) | low;
 		// decode opcode
-		console.log(opcode.toString(16).toUpperCase() + ": ");
+		logger.info(opcode.toString(16).toUpperCase() + ": ");
 
 		switch (opcode & 0xF000) { // get head 1 type
 			// 0NNN
@@ -73,7 +77,7 @@ export class Chip {
 						}
 						this.needRedraw = true;
 						this.pc += 2;
-						console.log("00E0 Clears the screen");
+						logger.info("00E0 Clears the screen");
 						break;
 					}
 					// 00EE 从子例程返回
@@ -84,7 +88,7 @@ export class Chip {
 							throw new Error("Stack underflow: no return address");
 						}
 						this.pc = addr + 2;
-						console.log("00EE Returning to " + this.pc.toString(16).toUpperCase());
+						logger.info("00EE Returning to " + this.pc.toString(16).toUpperCase());
 						break;
 					}
 					// 0NNN 在地址 NNN 处调用机器代码例程
@@ -98,7 +102,7 @@ export class Chip {
 			case 0x1000: {
 				const nnn = (opcode & 0x0FFF);
 				this.pc = nnn;
-				console.log("1NNN Jumps to address " + this.pc.toString(16).toUpperCase());
+				logger.info("1NNN Jumps to address " + this.pc.toString(16).toUpperCase());
 				break;
 			}
 			// 2NNN 在 NNN 处调用子例程。
@@ -106,7 +110,7 @@ export class Chip {
 				this.stack[this.stackPointer] = this.pc;
 				this.stackPointer += 1;
 				this.pc = (opcode & 0x0FFF);
-				console.log("2NNN Calls subroutine at " + this.pc.toString(16).toUpperCase());
+				logger.info("2NNN Calls subroutine at " + this.pc.toString(16).toUpperCase());
 				break;
 			}
 			// 3XNN 如果 VX 等于 NN，则跳过下一条指令
@@ -115,10 +119,10 @@ export class Chip {
 				const nn = (opcode & 0x00FF);
 				if (this.V[x] === nn) {
 					this.pc += 4;
-					console.log("3XNN Skipping next instruction if (V[" + x + "] == " + nn + ")");
+					logger.info("3XNN Skipping next instruction if (V[" + x + "] == " + nn + ")");
 				} else {
 					this.pc += 2;
-					console.log("3XNN Not skipping next instruction if (V[" + x + "] != " + nn + ")");
+					logger.info("3XNN Not skipping next instruction if (V[" + x + "] != " + nn + ")");
 				}
 				break;
 			}
@@ -128,10 +132,10 @@ export class Chip {
 				const nn = (opcode & 0x00FF);
 				if (this.V[x] !== nn) {
 					this.pc += 4;
-					console.log("4XNN Skipping next instruction if (V[" + x + "] != " + nn + ")");
+					logger.info("4XNN Skipping next instruction if (V[" + x + "] != " + nn + ")");
 				} else {
 					this.pc += 2;
-					console.log("4XNN Not Skipping next instruction if (V[" + x + "] == " + nn + ")");
+					logger.info("4XNN Not Skipping next instruction if (V[" + x + "] == " + nn + ")");
 				}
 				break;
 			}
@@ -141,7 +145,7 @@ export class Chip {
 				const y = (opcode & 0x00F0) >> 4;
 				if (this.V[x] === this.V[y]) {
 					this.pc += 4;
-					console.log("5XY0 Skipping next instruction (V[" + x + "] == V[" + y + "])");
+					logger.info("5XY0 Skipping next instruction (V[" + x + "] == V[" + y + "])");
 				} else {
 					this.pc += 2;
 				}
@@ -153,7 +157,7 @@ export class Chip {
 				const nn = (opcode & 0x00FF);
 				this.V[x] = nn;
 				this.pc += 2;
-				console.log("6XNN Sets V[" + x + "] to NN = " + nn);
+				logger.info("6XNN Sets V[" + x + "] to NN = " + nn);
 				break;
 			}
 			// 7XNN 将 NN 添加到 VX
@@ -162,7 +166,7 @@ export class Chip {
 				const nn = (opcode & 0x00FF);
 				this.V[x] = ((this.V[x] ?? 0) + nn) & 0xFF;
 				this.pc += 2;
-				console.log("7XNN Adding " + nn + " to V[" + x + "] = " + this.V[x]);
+				logger.info("7XNN Adding " + nn + " to V[" + x + "] = " + this.V[x]);
 				break;
 			}
 			// 8XYN
@@ -175,7 +179,7 @@ export class Chip {
 						if (this.V[y] === undefined) throw new Error("V[y] is undefined");
 						this.V[x] = this.V[y];
 						this.pc += 2;
-						console.log("8XY0 Set V[" + x + "] to the value of V[" + y + "] = " + this.V[x]);
+						logger.info("8XY0 Set V[" + x + "] to the value of V[" + y + "] = " + this.V[x]);
 						break;
 					}
 					// 8XY1 将 VX 设置为 VX 位或 VY
@@ -186,7 +190,7 @@ export class Chip {
 						if (this.V[x] === undefined || this.V[y] === undefined) throw new Error("V[x] or V[y] is undefined");
 						this.V[x] = this.V[x] | this.V[y];
 						this.pc += 2;
-						console.log("8XY1 Set V[" + x + "] to V[" + x + "] | V[" + y + "]= " + this.V[x]);
+						logger.info("8XY1 Set V[" + x + "] to V[" + x + "] | V[" + y + "]= " + this.V[x]);
 						break;
 					}
 					// 8XY2 将 VX 设置为 VX 位与 VY
@@ -197,7 +201,7 @@ export class Chip {
 						if (this.V[x] === undefined || this.V[y] === undefined) throw new Error("V[x] or V[y] is undefined");
 						this.V[x] = this.V[x] & this.V[y];
 						this.pc += 2;
-						console.log("8XY2 Set V[" + x + "] to V[" + x + "] & V[" + y + "]= " + this.V[x]);
+						logger.info("8XY2 Set V[" + x + "] to V[" + x + "] & V[" + y + "]= " + this.V[x]);
 						break;
 					}
 					// 8XY3 将 VX 设置为 VX 位异或 VY
@@ -208,7 +212,7 @@ export class Chip {
 						if (this.V[x] === undefined || this.V[y] === undefined) throw new Error("V[x] or V[y] is undefined");
 						this.V[x] = this.V[x] ^ this.V[y];
 						this.pc += 2;
-						console.log("8XY3 Set V[" + x + "] to V[" + x + "] ^ V[" + y + "]= " + this.V[x]);
+						logger.info("8XY3 Set V[" + x + "] to V[" + x + "] ^ V[" + y + "]= " + this.V[x]);
 						break;
 					}
 					// 8XY4 将 VY 添加到 VX 中
@@ -219,14 +223,14 @@ export class Chip {
 						if (this.V[x] === undefined || this.V[y] === undefined) throw new Error("V[x] or V[y] is undefined");
 						if (this.V[y] > 0xFF - this.V[x]) {
 							this.V[0xF] = 1;
-							console.log("8XY4 Carry!");
+							logger.info("8XY4 Carry!");
 						} else {
 							this.V[0xF] = 0;
-							console.log("8XY4 No Carry");
+							logger.info("8XY4 No Carry");
 						}
 						this.V[x] = (this.V[x] + this.V[y]) & 0xFF;
 						this.pc += 2;
-						console.log("8XY4 Set V[" + x + "] to V[" + x + "] + V[" + y + "]= " + this.V[x]);
+						logger.info("8XY4 Set V[" + x + "] to V[" + x + "] + V[" + y + "]= " + this.V[x]);
 						break;
 					}
 					// 8XY5 从 VX 中减去 VY
@@ -237,14 +241,14 @@ export class Chip {
 						if (this.V[x] === undefined || this.V[y] === undefined) throw new Error("V[x] or V[y] is undefined");
 						if (this.V[x] > this.V[y]) {
 							this.V[0xF] = 1;
-							console.log("8XY5 No Borrow");
+							logger.info("8XY5 No Borrow");
 						} else {
 							this.V[0xF] = 0;
-							console.log("8XY5 Borrow");
+							logger.info("8XY5 Borrow");
 						}
 						this.V[x] = (this.V[x] - this.V[y]) & 0xFF;
 						this.pc += 2;
-						console.log("8XY5 Set V[" + x + "] to V[" + x + "] - V[" + y + "]= " + this.V[x]);
+						logger.info("8XY5 Set V[" + x + "] to V[" + x + "] - V[" + y + "]= " + this.V[x]);
 						break;
 					}
 					// 8XY6 将 VX 向右移动 1
@@ -254,7 +258,7 @@ export class Chip {
 						this.V[0xF] = this.V[x] & 0x1;
 						this.V[x] = this.V[x] >> 1;
 						this.pc += 2;
-						console.log("8XY6 Shifts V[" + x + "] to the right by 1");
+						logger.info("8XY6 Shifts V[" + x + "] to the right by 1");
 						break;
 					}
 					// 8XY7 将 VX 设置为 VY 减去 VX
@@ -270,7 +274,7 @@ export class Chip {
 						}
 						this.V[x] = this.V[y] - this.V[x];
 						this.pc += 2;
-						console.log("8XY7 Sets V[" + x + "] to V[" + y + "] - V[" + x + "] = " + this.V[x]);
+						logger.info("8XY7 Sets V[" + x + "] to V[" + y + "] - V[" + x + "] = " + this.V[x]);
 						break;
 					}
 					// 8XYE TODO
@@ -292,7 +296,7 @@ export class Chip {
 						} else {
 							this.pc += 2;
 						}
-						console.log("9XY0 Skips the next instruction if VX does not equal VY.");
+						logger.info("9XY0 Skips the next instruction if VX does not equal VY.");
 						break;
 					}
 					default: {
@@ -306,7 +310,7 @@ export class Chip {
 			case 0xA000: {
 				this.I = (opcode & 0x0FFF);
 				this.pc += 2;
-				console.log("ANNN Set I to " + this.I.toString(16).toUpperCase());
+				logger.info("ANNN Set I to " + this.I.toString(16).toUpperCase());
 				break;
 			}
 			// BNNN 跳转到地址 NNN 加 V0
@@ -328,7 +332,7 @@ export class Chip {
 				const randomNumber = Math.floor(Math.random() * 256) & nn;
 				this.V[x] = randomNumber;
 				this.pc += 2;
-				console.log("CXNN Sets V[" + x + "] to the result of a bitwise and operation on a random number");
+				logger.info("CXNN Sets V[" + x + "] to the result of a bitwise and operation on a random number");
 				break;
 			}
 			// DXYN 在坐标 (VX, VY) 处绘制一个 sprite
@@ -362,7 +366,7 @@ export class Chip {
 				}
 				this.pc += 2;
 				this.needRedraw = true;
-				console.log("DXYN Draws a sprite at coordinate (" + vxd + "," + vyd + ")");
+				logger.info("DXYN Draws a sprite at coordinate (" + vxd + "," + vyd + ")");
 				break;
 			}
 			// ENNN 处理键盘操作
@@ -374,7 +378,7 @@ export class Chip {
 						const key = this.V[x] ?? 0;
 						if (this.keys[key] === 1) {
 							this.pc += 4;
-							console.log("ENNN Skips the next instruction if the key stored in V[" + x + "] is pressed");
+							logger.info("ENNN Skips the next instruction if the key stored in V[" + x + "] is pressed");
 						} else {
 							this.pc += 2;
 						}
@@ -386,7 +390,7 @@ export class Chip {
 						const key = this.V[x] ?? 0;
 						if (this.keys[key] === 0) {
 							this.pc += 4;
-							console.log("EXA1 Skips the next instruction if the key stored in V[" + x + "] is not pressed");
+							logger.info("EXA1 Skips the next instruction if the key stored in V[" + x + "] is not pressed");
 						} else {
 							this.pc += 2;
 						}
@@ -406,7 +410,7 @@ export class Chip {
 						const x = (opcode & 0x0F00) >> 8;
 						this.V[x] = this.delay_timer & 0xFF;
 						this.pc += 2;
-						console.log("FX07 Sets V[" + x + "] " + this.V[x] + " to the value of the delay timer.");
+						logger.info("FX07 Sets V[" + x + "] " + this.V[x] + " to the value of the delay timer.");
 						break;
 					}
 					// FX0A 等待按键，然后存储在 VX 中
@@ -419,7 +423,7 @@ export class Chip {
 								break;
 							}
 						}
-						console.log("FX0A Awaiting a key pressed store to V[" + x + "]");
+						logger.info("FX0A Awaiting a key pressed store to V[" + x + "]");
 						break;
 					}
 					// FX15 将延迟计时器设置为 VX
@@ -427,7 +431,7 @@ export class Chip {
 						const x = (opcode & 0x0F00) >> 8;
 						this.delay_timer = (this.V[x] ?? 0) & 0xFF;
 						this.pc += 2;
-						console.log("FX15 Sets the delay timer to V[" + x + "] = " + this.V[x]);
+						logger.info("FX15 Sets the delay timer to V[" + x + "] = " + this.V[x]);
 						break;
 					}
 					// FX18 将声音计时器设置为 VX
@@ -435,7 +439,7 @@ export class Chip {
 						const x = (opcode & 0x0F00) >> 8;
 						this.sound_timer = 1; // 调整为只发一次声音
 						this.pc += 2;
-						console.log("FX18 Sets the sound timer to VX." + this.V[x]);
+						logger.info("FX18 Sets the sound timer to VX." + this.V[x]);
 						break;
 					}
 					// FX29 将 I 设置为字符在 VX 中的 sprite 位置
@@ -444,7 +448,7 @@ export class Chip {
 						const character = this.V[x];
 						this.I = 0x050 + ((character ?? 0) * 5);
 						this.pc += 2;
-						console.log("FX29 Setting I to Character V[" + x + "] = " + this.V[x] + " Offset to 0x" + this.I.toString(16).toUpperCase());
+						logger.info("FX29 Setting I to Character V[" + x + "] = " + this.V[x] + " Offset to 0x" + this.I.toString(16).toUpperCase());
 						break;
 					}
 					// FX1E 将 VX 加到 I
@@ -465,7 +469,7 @@ export class Chip {
 						this.memory[this.I + 1] = tens;
 						this.memory[this.I + 2] = ones;
 						this.pc += 2;
-						console.log("FX33 Stores the binary-coded decimal representation of V[" + x + "]: " + hundreds + tens + ones);
+						logger.info("FX33 Stores the binary-coded decimal representation of V[" + x + "]: " + hundreds + tens + ones);
 						break;
 					}
 					// FX55 将 V0 到 VX 存储在内存中
@@ -475,7 +479,7 @@ export class Chip {
 							this.memory[this.I + i] = this.V[i]!;
 						}
 						this.pc += 2;
-						console.log("FX55 Stores from V0 to VX (including VX) in memory, starting at address I.");
+						logger.info("FX55 Stores from V0 to VX (including VX) in memory, starting at address I.");
 						break;
 					}
 					// FX65 使用内存中的值从 V0 填充到 VX
@@ -486,7 +490,7 @@ export class Chip {
 						}
 						this.I = this.I + x + 1;
 						this.pc += 2;
-						console.log("FX65 Fills from V[0] to V[" + x + "] with values from memory[0x" + (this.I & 0xFF).toString(16).toUpperCase() + "]");
+						logger.info("FX65 Fills from V[0] to V[" + x + "] with values from memory[0x" + (this.I & 0xFF).toString(16).toUpperCase() + "]");
 						break;
 					}
 					default: {

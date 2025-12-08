@@ -1,3 +1,6 @@
+import { getLogger } from "loglevel";
+const logger = getLogger("Keyboard");
+logger.setLevel("debug");
 /**
  * 键盘设备
  * 模拟 CHIP-8 键盘布局
@@ -23,7 +26,6 @@ export class Keyboard {
         for (let i = 0; i < this.keyIdToKey.length; i++) {
             this.keyIdToKey[i] = -1;
         }
-
         // 映射键盘按键到 CHIP-8 键位
         this.keyIdToKey['1'.charCodeAt(0)] = 1;
         this.keyIdToKey['2'.charCodeAt(0)] = 2;
@@ -53,6 +55,7 @@ export class Keyboard {
      */
     public keyPressed(keyCode: number): void {
         const key = this.keyIdToKey[keyCode];
+        logger.debug(`keyPressed: ${keyCode} -> ${key}`);
         if (key !== -1) {
             this.keyBuffer[key!] = 1;
         }
@@ -101,8 +104,9 @@ export class Keyboard {
     /**
      * 绑定到 DOM 键盘事件
      * @param element 要绑定事件的 DOM 元素
-     */
+     */ 
     public bindToElement(element: HTMLElement): void {
+        logger.debug("bindToElement", element);
         element.addEventListener('keydown', (event: KeyboardEvent) => {
             this.keyPressed(event.keyCode || event.which);
         });

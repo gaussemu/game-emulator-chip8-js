@@ -14,6 +14,7 @@ export class Emulator {
         this.chip8 = new Chip(new Audio());
         this.screen = new Screen(this.chip8, container);
         this.keyboard = new Keyboard();
+        this.keyboard.bindToElement(document.documentElement);
         this.chip8.loadProgram("./programs/pong2.c8");
     }
 
