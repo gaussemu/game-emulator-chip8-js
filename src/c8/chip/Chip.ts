@@ -515,7 +515,7 @@ export class Chip {
 		}
 	}
 
-	public getDisplay(): Uint8Array {
+	public getFrameBuffer(): Uint8Array {
 		return this.display;
 	}
 
