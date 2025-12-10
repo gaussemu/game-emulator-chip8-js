@@ -1,5 +1,8 @@
-import { createApp } from 'vue'
-import './style.css'
-import App from './App.vue'
+import { Emulator } from "./c8/Emulator";
 
-createApp(App).mount('#app')
+window.addEventListener('load', () => {
+   const container = document.getElementById('app');
+   if (container) {
+    Emulator.launch(container);
+   }
+})
