@@ -1,6 +1,6 @@
-import { getLogger } from "loglevel";
-const logger = getLogger("Keyboard");
-logger.setLevel("debug");
+import { getLogger } from 'loglevel';
+const logger = getLogger('Keyboard');
+logger.setLevel('warn');
 /**
  * 键盘设备
  * 模拟 CHIP-8 键盘布局
@@ -24,29 +24,44 @@ export class Keyboard {
         this.keyBuffer = new Array(16).fill(0);
         this.keyIdToKey = new Array(256).fill(-1);
         this.fillKeyIds();
+        this.listenPanelClick();
+    }
+
+    listenPanelClick() {
+        const onKey = (e: Event, value: number) => {
+            const ele = e.target as HTMLElement;
+            if (ele.classList.contains('key')) {
+                const index = Number(ele.dataset.value);
+                logger.debug('[keyboard] panel click', index, value);
+                this.keyBuffer[index] = value;
+                this.updateRender();
+            }
+        };
+        this.keyPanel.addEventListener('mousedown', (e) => onKey(e, 1));
+        this.keyPanel.addEventListener('mouseout', (e) => onKey(e, 0));
     }
 
     private createKeyboardPanel() {
         const panel = document.createElement('div');
-        panel.classList.add('keyboard-panel')
+        panel.classList.add('keyboard-panel');
         const keys = [
             ['1', '2', '3', 'C'],
             ['4', '5', '6', 'D'],
             ['7', '8', '9', 'E'],
             ['A', '0', 'B', 'F'],
-        ]
-        keys.forEach(row => {
+        ];
+        keys.forEach((row) => {
             const rowItem = document.createElement('div');
-            rowItem.classList.add('row')
-            row.forEach(item => {
+            rowItem.classList.add('row');
+            row.forEach((item) => {
                 const keyItem = document.createElement('div');
                 keyItem.innerText = item;
                 keyItem.dataset.value = `0x${item}`;
                 keyItem.classList.add('key');
                 rowItem.appendChild(keyItem);
-            })
+            });
             panel.appendChild(rowItem);
-        })
+        });
         return panel;
     }
 
@@ -54,17 +69,17 @@ export class Keyboard {
         const keys = this.keyPanel.getElementsByClassName('key');
         const map: Map<number, number> = new Map();
         this.keyBuffer.forEach((value, key) => {
-            map.set(key, value)
-        })
-        Array.from(keys).forEach(item => {
+            map.set(key, value);
+        });
+        Array.from(keys).forEach((item) => {
             const key = (item as HTMLElement).dataset.value;
             const flag = map.get(Number(key));
             if (flag === 1) {
-                item.classList.add('key-down')
+                item.classList.add('key-down');
             } else {
-                item.classList.remove('key-down')
+                item.classList.remove('key-down');
             }
-        })
+        });
     }
 
     private fillKeyIds(): void {
@@ -76,22 +91,22 @@ export class Keyboard {
         this.keyIdToKey['1'.charCodeAt(0)] = 1;
         this.keyIdToKey['2'.charCodeAt(0)] = 2;
         this.keyIdToKey['3'.charCodeAt(0)] = 3;
-        this.keyIdToKey['4'.charCodeAt(0)] = 0xC;
+        this.keyIdToKey['4'.charCodeAt(0)] = 0xc;
 
         this.keyIdToKey['Q'.charCodeAt(0)] = 4;
         this.keyIdToKey['W'.charCodeAt(0)] = 5;
         this.keyIdToKey['E'.charCodeAt(0)] = 6;
-        this.keyIdToKey['R'.charCodeAt(0)] = 0xD;
+        this.keyIdToKey['R'.charCodeAt(0)] = 0xd;
 
         this.keyIdToKey['A'.charCodeAt(0)] = 7;
         this.keyIdToKey['S'.charCodeAt(0)] = 8;
         this.keyIdToKey['D'.charCodeAt(0)] = 9;
-        this.keyIdToKey['F'.charCodeAt(0)] = 0xE;
+        this.keyIdToKey['F'.charCodeAt(0)] = 0xe;
 
-        this.keyIdToKey['Z'.charCodeAt(0)] = 0xA;
+        this.keyIdToKey['Z'.charCodeAt(0)] = 0xa;
         this.keyIdToKey['X'.charCodeAt(0)] = 0;
-        this.keyIdToKey['C'.charCodeAt(0)] = 0xB;
-        this.keyIdToKey['V'.charCodeAt(0)] = 0xF;        
+        this.keyIdToKey['C'.charCodeAt(0)] = 0xb;
+        this.keyIdToKey['V'.charCodeAt(0)] = 0xf;
     }
 
     /**
@@ -104,7 +119,7 @@ export class Keyboard {
         if (key !== -1) {
             this.keyBuffer[key!] = 1;
         }
-        this.updateRender();        
+        this.updateRender();
     }
 
     /**
@@ -153,7 +168,7 @@ export class Keyboard {
      * @param element 要绑定事件的 DOM 元素
      */
     public bindToElement(element: HTMLElement): void {
-        logger.debug("bindToElement", element);
+        logger.debug('bindToElement', element);
         element.addEventListener('keydown', (event: KeyboardEvent) => {
             this.keyPressed(event.keyCode || event.which);
         });
@@ -170,7 +185,7 @@ export class Keyboard {
     public unbindFromElement(element: HTMLElement): void {
         // 由于我们使用了匿名函数，这里需要存储引用
         // 在实际使用中，建议使用具名函数以便解绑
-        element.removeEventListener('keydown', () => { });
-        element.removeEventListener('keyup', () => { });
+        element.removeEventListener('keydown', () => {});
+        element.removeEventListener('keyup', () => {});
     }
 }
