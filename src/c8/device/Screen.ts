@@ -9,22 +9,20 @@ export class Screen {
     constructor(container: HTMLElement) {
         // 创建容器
         this.container = container;
-        this.container.style.position = "relative";
         // 创建画布
         this.canvas = document.createElement("canvas");
         this.canvas.width = this.width * this.pixelSize;
-        this.canvas.height = this.height * this.pixelSize;
-        this.canvas.style.border = "1px solid #333";
-        this.canvas.style.backgroundColor = "#000";
-
-        this.ctx = this.canvas.getContext("2d")!;
-
+        this.canvas.height = this.height * this.pixelSize;    
         // 组装界面
         this.container.appendChild(this.canvas);
 
         // 确保画布获得焦点以接收键盘事件
         this.canvas.tabIndex = 0;
         this.canvas.focus();
+
+        // 获取上下文
+        this.ctx = this.canvas.getContext("2d")!;
+
     }
 
     public render(display: Uint8Array): void {

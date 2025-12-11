@@ -1,0 +1,45 @@
+.c8-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.screen-container {
+    border: 1px solid;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+
+.keyboard-panel {
+    height: 320px;
+    height: 320px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid;
+    border-radius: 4px;
+}
+
+.keyboard-panel .row {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    gap: 10px;
+}
+
+.keyboard-panel .row .key {
+    width: 60px;
+    height: 60px;
+    text-align: center;
+    line-height: 60px;
+    border: 1px solid;
+    border-radius: 4px;
+    user-select: none;
+    cursor: pointer;
+}
+
+.keyboard-panel .row .key.key-down {
+    background-color: #ccc;
+    border: 1px solid #ccc;
+}

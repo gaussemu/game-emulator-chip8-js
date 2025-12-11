@@ -26,7 +26,7 @@ touch .nojekyll # 防止 github pages 忽略 _ 开头的文件
 # 初始化 git 仓库（如果不存在）
 if [ ! -d .git ]; then
     git init
-    git remote add origin git@github.com:gausstool/game-emulator-chip8-js.git
+    git remote add origin git@github.com:gaussemu/game-emulator-chip8-js.git
 fi
 
 # 添加所有文件到 git

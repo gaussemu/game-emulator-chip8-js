@@ -31,9 +31,9 @@ export class Chip {
 
 	private needRedraw: boolean;
 
-	private audio: Audio;
+	private audio: Audio | null = null;
 
-	constructor(audio: Audio) {
+	constructor() {
 		this.memory = new Uint8Array(4096);
 		this.V = new Uint8Array(16);
 		this.I = 0x0;
@@ -50,9 +50,12 @@ export class Chip {
 		this.display = new Uint8Array(64 * 32);
 
 		this.needRedraw = false;
-		this.audio = audio;
 
 		this.loadFontset();
+	}
+
+	linkAudio(audio: Audio) {
+		this.audio = audio;
 	}
 
 	public run(): void {
@@ -318,10 +321,10 @@ export class Chip {
 				this.stack[this.stackPointer] = this.pc;
 				this.stackPointer += 1;
 				const nnn = (opcode & 0x0FFF);
-					if (this.V[0] === undefined) {
-						throw new Error("V[0] is undefined");
-					}
-					this.pc = (this.V[0] + nnn) & 0xFFF;
+				if (this.V[0] === undefined) {
+					throw new Error("V[0] is undefined");
+				}
+				this.pc = (this.V[0] + nnn) & 0xFFF;
 				console.error("BNNN Jumps to the address NNN plus V[0] = " + this.pc);
 				break;
 			}
@@ -508,7 +511,7 @@ export class Chip {
 
 		if (this.sound_timer > 0) {
 			this.sound_timer--;
-			this.audio.playSound();
+			this.audio?.playSound();
 		}
 		if (this.delay_timer > 0) {
 			this.delay_timer--;
