@@ -12,13 +12,59 @@ logger.setLevel("debug");
  * A 0 B F
  */
 export class Keyboard {
+    private container: HTMLElement;
+    private keyPanel: HTMLDivElement;
     private keyBuffer: number[];
     private keyIdToKey: number[];
 
-    constructor() {
+    constructor(container: HTMLElement) {
+        this.container = container;
+        this.keyPanel = this.createKeyboardPanel();
+        this.container.appendChild(this.keyPanel);
         this.keyBuffer = new Array(16).fill(0);
         this.keyIdToKey = new Array(256).fill(-1);
         this.fillKeyIds();
+    }
+
+    private createKeyboardPanel() {
+        const panel = document.createElement('div');
+        panel.classList.add('keyboard-panel')
+        const keys = [
+            ['1', '2', '3', 'C'],
+            ['4', '5', '6', 'D'],
+            ['7', '8', '9', 'E'],
+            ['A', '0', 'B', 'F'],
+        ]
+        keys.forEach(row => {
+            const rowItem = document.createElement('div');
+            rowItem.classList.add('row')
+            row.forEach(item => {
+                const keyItem = document.createElement('div');
+                keyItem.innerText = item;
+                keyItem.dataset.value = `0x${item}`;
+                keyItem.classList.add('key');
+                rowItem.appendChild(keyItem);
+            })
+            panel.appendChild(rowItem);
+        })
+        return panel;
+    }
+
+    updateRender() {
+        const keys = this.keyPanel.getElementsByClassName('key');
+        const map: Map<number, number> = new Map();
+        this.keyBuffer.forEach((value, key) => {
+            map.set(key, value)
+        })
+        Array.from(keys).forEach(item => {
+            const key = (item as HTMLElement).dataset.value;
+            const flag = map.get(Number(key));
+            if (flag === 1) {
+                item.classList.add('key-down')
+            } else {
+                item.classList.remove('key-down')
+            }
+        })
     }
 
     private fillKeyIds(): void {
@@ -30,23 +76,22 @@ export class Keyboard {
         this.keyIdToKey['1'.charCodeAt(0)] = 1;
         this.keyIdToKey['2'.charCodeAt(0)] = 2;
         this.keyIdToKey['3'.charCodeAt(0)] = 3;
+        this.keyIdToKey['4'.charCodeAt(0)] = 0xC;
 
         this.keyIdToKey['Q'.charCodeAt(0)] = 4;
         this.keyIdToKey['W'.charCodeAt(0)] = 5;
         this.keyIdToKey['E'.charCodeAt(0)] = 6;
+        this.keyIdToKey['R'.charCodeAt(0)] = 0xD;
 
         this.keyIdToKey['A'.charCodeAt(0)] = 7;
         this.keyIdToKey['S'.charCodeAt(0)] = 8;
         this.keyIdToKey['D'.charCodeAt(0)] = 9;
+        this.keyIdToKey['F'.charCodeAt(0)] = 0xE;
 
         this.keyIdToKey['Z'.charCodeAt(0)] = 0xA;
         this.keyIdToKey['X'.charCodeAt(0)] = 0;
         this.keyIdToKey['C'.charCodeAt(0)] = 0xB;
-
-        this.keyIdToKey['4'.charCodeAt(0)] = 0xC;
-        this.keyIdToKey['R'.charCodeAt(0)] = 0xD;
-        this.keyIdToKey['F'.charCodeAt(0)] = 0xE;
-        this.keyIdToKey['V'.charCodeAt(0)] = 0xF;
+        this.keyIdToKey['V'.charCodeAt(0)] = 0xF;        
     }
 
     /**
@@ -59,6 +104,7 @@ export class Keyboard {
         if (key !== -1) {
             this.keyBuffer[key!] = 1;
         }
+        this.updateRender();        
     }
 
     /**
@@ -70,6 +116,7 @@ export class Keyboard {
         if (key !== -1) {
             this.keyBuffer[key!] = 0;
         }
+        this.updateRender();
     }
 
     /**
@@ -104,7 +151,7 @@ export class Keyboard {
     /**
      * 绑定到 DOM 键盘事件
      * @param element 要绑定事件的 DOM 元素
-     */ 
+     */
     public bindToElement(element: HTMLElement): void {
         logger.debug("bindToElement", element);
         element.addEventListener('keydown', (event: KeyboardEvent) => {
@@ -123,7 +170,7 @@ export class Keyboard {
     public unbindFromElement(element: HTMLElement): void {
         // 由于我们使用了匿名函数，这里需要存储引用
         // 在实际使用中，建议使用具名函数以便解绑
-        element.removeEventListener('keydown', () => {});
-        element.removeEventListener('keyup', () => {});
+        element.removeEventListener('keydown', () => { });
+        element.removeEventListener('keyup', () => { });
     }
 }
