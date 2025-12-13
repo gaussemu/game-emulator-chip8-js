@@ -1,8 +1,8 @@
-import './style/index.css';
 import { Chip } from './chip/Chip';
 import { Audio } from './device/Audio';
-import { Screen } from './device/Screen';
 import { Keyboard } from './device/Keyboard';
+import { Screen } from './device/Screen';
+import './style/index.css';
 
 export class Emulator {
     private container: HTMLElement;
@@ -13,25 +13,22 @@ export class Emulator {
     private isRunning: boolean = false;
 
     constructor(container: HTMLElement) {
-        this.audio = new Audio();
-        
+        // UI
         const $screen = document.createElement('div');
-
         $screen.classList.add('screen-container')
-        this.screen = new Screen($screen);
-        
         const $keyboard = document.createElement('div');
         $keyboard.classList.add('keyboard-container');
+        const $box = document.createElement('div');
+        $box.appendChild($screen)
+        $box.appendChild($keyboard);
+        $box.classList.add('c8-container');
+        this.container = container;
+        this.container.appendChild($box);
+        // Device
         this.keyboard = new Keyboard($keyboard);
         this.keyboard.bindToElement(document.documentElement);
-
-        this.container = container;
-        const box = document.createElement('div');
-        box.appendChild($screen)
-        box.appendChild($keyboard);
-        box.classList.add('c8-container')
-        this.container.appendChild(box);
-
+        this.screen = new Screen($screen);
+        this.audio = new Audio();
         this.chip8 = new Chip();
         this.chip8.linkAudio(this.audio)
         this.chip8.loadProgram("./programs/pong2.c8");
@@ -54,8 +51,13 @@ export class Emulator {
         this.isRunning = false;
     }
 
+    public dispose(): void {
+        this.stop();
+        this.screen.dispose();
+        this.keyboard.unbindFromElement(document.documentElement);
+    }
+
     private sleep(ms: number): Promise<void> {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
-
 }

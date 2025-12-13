@@ -25,20 +25,18 @@ export class Screen {
 
     }
 
-    public render(display: Uint8Array): void {
+    public render(frameBuffer: Uint8Array): void {
         // 清空画布
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         // 绘制像素
-        for (let i = 0; i < display.length; i++) {
-            if (display[i] === 0) {
+        for (let i = 0; i < frameBuffer.length; i++) {
+            if (frameBuffer[i] === 0) {
                 this.ctx.fillStyle = "#000000"; // 黑色
             } else {
                 this.ctx.fillStyle = "#FFFFFF"; // 白色
             }
-
             const x = (i % this.width) * this.pixelSize;
             const y = Math.floor(i / this.width) * this.pixelSize;
-
             this.ctx.fillRect(x, y, this.pixelSize, this.pixelSize);
         }
     }

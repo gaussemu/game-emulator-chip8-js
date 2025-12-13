@@ -27,7 +27,7 @@ export class Chip {
 	// 键盘输入
 	private keys: Uint8Array;
 	// 显示输出
-	private display: Uint8Array;
+	private frameBuffer: Uint8Array;
 
 	private needRedraw: boolean;
 
@@ -47,7 +47,7 @@ export class Chip {
 
 		this.keys = new Uint8Array(16);
 
-		this.display = new Uint8Array(64 * 32);
+		this.frameBuffer = new Uint8Array(64 * 32);
 
 		this.needRedraw = false;
 
@@ -75,8 +75,8 @@ export class Chip {
 				switch (opcode & 0x0FFF) {
 					// 00E0 清除屏幕
 					case 0x00E0: {
-						for (let i = 0; i < this.display.length; i++) {
-							this.display[i] = 0;
+						for (let i = 0; i < this.frameBuffer.length; i++) {
+							this.frameBuffer[i] = 0;
 						}
 						this.needRedraw = true;
 						this.pc += 2;
@@ -358,11 +358,11 @@ export class Chip {
 							totalX = totalX % 64;
 							totalY = totalY % 32;
 							const index = totalY * 64 + totalX;
-							if (this.display[index] === 1) {
+							if (this.frameBuffer[index] === 1) {
 								this.V[0xF] = 1;
 							}
-							if (this.display[index] !== undefined) {
-								this.display[index] ^= 1;
+							if (this.frameBuffer[index] !== undefined) {
+								this.frameBuffer[index] ^= 1;
 							}
 						}
 					}
@@ -519,7 +519,7 @@ export class Chip {
 	}
 
 	public getFrameBuffer(): Uint8Array {
-		return this.display;
+		return this.frameBuffer;
 	}
 
 	public isNeedRedraw(): boolean {
