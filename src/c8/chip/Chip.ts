@@ -9,7 +9,7 @@ export class Chip {
 	// 内存 4 KB 4096 2 的 12 次方
 	private memory: Uint8Array;
 	// 数据寄存器 16 个 8 bit
-	private V: Uint8Array;
+	private V: Uint8Array<ArrayBuffer>;
 	// 地址寄存器 12 位 用于指向内存地址（基址）
 	private I: number;
 	// 程序指针寄存器
@@ -572,7 +572,7 @@ export class Chip {
 	}
 
 	// 添加一个方法来获取寄存器值（用于调试）
-	public getRegisters(): Uint8Array {
+	public getRegisters(): Uint8Array<ArrayBuffer> {
 		return this.V;
 	}
 
